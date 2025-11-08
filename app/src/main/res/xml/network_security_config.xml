@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Emulateur Android -> machine hôte -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+
+    <!-- Si tu testes sur un appareil physique : remplace par l'IP locale de ton PC -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">192.168.1.123</domain>
+    </domain-config>
+
+    <!-- (Optionnel) si tu utilises Genymotion -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.3.2</domain>
+    </domain-config>
+
+    <!-- (Optionnel) localhost, utile selon certains setups -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+</network-security-config>
