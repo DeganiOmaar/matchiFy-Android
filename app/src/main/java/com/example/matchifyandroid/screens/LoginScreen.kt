@@ -34,17 +34,25 @@ fun LoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var rememberMe by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val userPreferences = remember { UserPreferences(context) }
     val coroutineScope = rememberCoroutineScope()
     var savedRole by remember { mutableStateOf(role ?: "") }
 
-    // 🔁 Lecture du rôle sauvegardé
+    // 🔁 Lecture du rôle et email sauvegardé
     LaunchedEffect(Unit) {
         coroutineScope.launch {
             userPreferences.userRole.collectLatest {
                 if (it != null) savedRole = it
+            }
+        }
+        coroutineScope.launch {
+            val savedEmail = userPreferences.getEmail()
+            if (!savedEmail.isNullOrBlank()) {
+                email = savedEmail
+                rememberMe = true
             }
         }
     }
@@ -56,35 +64,11 @@ fun LoginScreen(
     val authSuccess by viewModel.authSuccess.collectAsState()
     val errorMessage by viewModel.error.collectAsState()
 
-    // ✅ Snackbar host
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    // ✅ Gère la navigation et les snackbars
-    LaunchedEffect(authSuccess, errorMessage) {
-        when {
-            authSuccess -> {
-                coroutineScope.launch {
-                    snackbarHostState.showSnackbar(
-                        message = "✅ Connexion réussie !",
-                        withDismissAction = true
-                    )
-                }
-
-                // ⏳ petite pause pour que la Snackbar s’affiche avant la redirection
-                kotlinx.coroutines.delay(500)
-
-                navController.navigate("home") {
-                    popUpTo("login") { inclusive = true }
-                }
-            }
-
-            errorMessage != null -> {
-                coroutineScope.launch {
-                    snackbarHostState.showSnackbar(
-                        message = "❌ ${errorMessage ?: "Erreur de connexion"}",
-                        withDismissAction = true
-                    )
-                }
+    // ✅ Navigation directe si connexion réussie
+    LaunchedEffect(authSuccess) {
+        if (authSuccess) {
+            navController.navigate("home") {
+                popUpTo("login") { inclusive = true }
             }
         }
     }
@@ -108,7 +92,6 @@ fun LoginScreen(
                 )
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = backgroundColor
     ) { paddingValues ->
         Box(
@@ -164,6 +147,35 @@ fun LoginScreen(
                         visualTransformation = PasswordVisualTransformation()
                     )
 
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // ✅ Remember Me
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth(0.9f)
+                    ) {
+                        Checkbox(
+                            checked = rememberMe,
+                            onCheckedChange = { checked ->
+                                rememberMe = checked
+                                coroutineScope.launch {
+                                    if (rememberMe) {
+                                        userPreferences.saveEmail(email)
+                                        userPreferences.setRememberMe(true)
+                                    } else {
+                                        userPreferences.clearEmail()
+                                        userPreferences.clearRememberMe()
+                                    }
+
+                                }
+                            },
+                            colors = CheckboxDefaults.colors(checkedColor = buttonColor)
+                        )
+                        Text("Remember me", color = Color.Gray)
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     // 🧩 Lien "Mot de passe oublié ?"
                     TextButton(
                         onClick = { navController.navigate("resetPassword") },
@@ -184,9 +196,8 @@ fun LoginScreen(
                         onClick = {
                             if (email.isNotBlank() && password.isNotBlank()) {
                                 viewModel.login(email, password)
-                            } else {
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("⚠️ Remplissez tous les champs.")
+                                if (rememberMe) coroutineScope.launch {
+                                    userPreferences.saveEmail(email)
                                 }
                             }
                         },

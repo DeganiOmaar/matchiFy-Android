@@ -14,11 +14,13 @@ activityCompose = "1.11.0"
 composeBom = "2024.09.00"
 lifecycleViewmodelCompose = "2.8.4"
 loggingInterceptor = "5.0.0-alpha.12"
+materialIconsExtended = "1.6.0"
 navigationCompose = "2.8.3"
 okhttp = "5.0.0-alpha.12"
 retrofit = "2.11.0"
 
 [libraries]
+androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }

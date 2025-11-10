@@ -34,5 +34,10 @@ fun AppNavigator(token: String? = null) {
             val token = backStackEntry.arguments?.getString("token")
             NewPasswordScreen(navController, token)
         }
+
+        // ✅ Nouvelle page Home
+        composable("home") {
+            HomeScreen()
+        }
     }
 }

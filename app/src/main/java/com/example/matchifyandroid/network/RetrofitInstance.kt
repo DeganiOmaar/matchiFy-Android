@@ -23,4 +23,14 @@ object RetrofitInstance {
             .build()
             .create(ApiService::class.java)
     }
+    val talentApi: TalentApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(client)
+            .build()
+            .create(TalentApiService::class.java)
+    }
+
+
 }

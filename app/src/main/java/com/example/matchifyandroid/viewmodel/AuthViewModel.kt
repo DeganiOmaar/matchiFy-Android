@@ -1,15 +1,18 @@
 package com.example.matchifyandroid.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.matchifyandroid.data.UserPreferences
 import com.example.matchifyandroid.network.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = AuthRepository()
+    private val userPrefs = UserPreferences(application)
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
@@ -30,6 +33,14 @@ class AuthViewModel : ViewModel() {
 
                 val response = repository.login(email, password)
                 if (response.isSuccessful && response.body() != null) {
+                    val body = response.body()
+                    val token = body?.access_token ?: ""
+
+                    // ✅ Sauvegarder le token après connexion
+                    if (token.isNotEmpty()) {
+                        userPrefs.saveToken(token)
+                    }
+
                     _authSuccess.value = true
                 } else {
                     _error.value = response.errorBody()?.string() ?: "Email ou mot de passe invalide"
@@ -64,7 +75,6 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    // ✅ Étape 1 : Oublier le mot de passe (envoi d'email)
     fun forgotPassword(email: String) {
         viewModelScope.launch {
             try {
@@ -86,7 +96,6 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    // ✅ Étape 2 : Réinitialiser le mot de passe avec token
     fun updatePassword(token: String, newPassword: String) {
         viewModelScope.launch {
             try {
